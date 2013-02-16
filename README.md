@@ -5,9 +5,17 @@ This library spawns a child process which communicates with the
 
 Just a proof of concept.
 
+## Installation
+
+```ruby
+gem install ddslbg
+```
+
 ## Usage
 
 ```ruby
+require 'ddslbg'
+
 $ddsl = Ddslbg::Client.new
 
 service = {
