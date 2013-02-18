@@ -69,9 +69,21 @@ module Ddslbg
 
     def connect!
       cmd = [options[:java_cmd], options[:jar_path]].join(' ')
-      @stdin, @stdout, @stderr = Open3.popen3(cmd)
+      @stdin, @stdout, @wait_thr = Open3.popen2(cmd)
 
-      process_line(@stdout.gets)
+      process_line(@stdout.gets).include?('ddsl-cmdline-tool started')
+    end
+
+    def disconnect!
+      return false unless connected?
+      @stdin.close unless @stdin.closed?
+      @stdout.close unless @stdout.closed?
+      Process.kill(:INT, @wait_thr.pid)
+      true
+    end
+
+    def connected?
+      !!@wait_thr && @wait_thr.alive?
     end
 
     private

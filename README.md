@@ -72,3 +72,7 @@ fallbacks = {
 
 $ddsl.fallback_urls = fallbacks
 ```
+
+### Cleanly disconnect
+
+Use `$ddsl.disconnect!` to kill off the spawned process.
