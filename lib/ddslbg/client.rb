@@ -1,3 +1,8 @@
+require 'open3'
+require 'json'
+
+require 'ddslbg/error'
+
 module Ddslbg
   class Client
     BUNDLED_JAR_PATH = File.expand_path(
@@ -48,9 +53,12 @@ module Ddslbg
       process_line(@stdout.gets)
     end
 
+    private
+
     def process_line(line='')
       status, data = line.scan(/^([a-z]+) (.+)/).flatten
-      raise StandardError.new("[ddslbg] #{line}") unless status == 'ok'
+      data.chomp!
+      raise Error.new(data) unless status == 'ok'
       data
     end
 
