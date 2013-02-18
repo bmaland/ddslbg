@@ -15,7 +15,7 @@ module Ddslbg
       default_opts = {
         java_cmd: 'java -jar',
         jar_path: BUNDLED_JAR_PATH,
-        auto_connect: true
+        auto_connect: false
       }
       @options = default_opts.merge(options)
 
@@ -63,6 +63,7 @@ module Ddslbg
 
     # Sends a raw command to DDSL and returns the response as a unprocessed string.
     def do_send(cmd)
+      connect! unless connected?
       @stdin.puts(cmd)
       @stdout.gets
     end
