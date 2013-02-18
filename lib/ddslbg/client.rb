@@ -14,11 +14,12 @@ module Ddslbg
     def initialize(options={})
       default_opts = {
         java_cmd: 'java -jar',
-        jar_path: BUNDLED_JAR_PATH
+        jar_path: BUNDLED_JAR_PATH,
+        auto_connect: true
       }
       @options = default_opts.merge(options)
 
-      connect!
+      connect! if @options[:auto_connect]
     end
 
     def available_services
@@ -33,18 +34,38 @@ module Ddslbg
       send('serviceDown', service)
     end
 
-    # Send a raw command to DDSL.
-    #
-    # `data` can be a Ruby array or hash. It is converted to JSON before it is
-    # sent to DDSL.
-    def send(msg, data=nil)
-      cmd = msg
-      cmd += " #{data.to_json}" if data
-      @stdin.puts(cmd)
-      parse(process_line(@stdout.gets))
+    def best_service_location(service_request)
+      send('getBestServiceLocation', service_request)
     end
 
-    private
+    def service_locations(service_request)
+      send('getServiceLocations', service_request)
+    end
+
+    def fallback_urls=(fallback_urls)
+      send('setFallbackUrlsMap', fallback_urls, parse: false)
+    end
+
+    def zookeeper_hosts=(hosts=[])
+      send('setZookeeperHosts', hosts, parse: false)
+    end
+
+    # `data` can be a Ruby array or hash. It is converted to JSON before it is
+    # sent to DDSL.
+    def send(msg, data={}, options={})
+      default_opts = { parse: true }
+      options = default_opts.merge(options)
+      msg += " #{data.to_json}" unless !data || data.empty?
+      res = process_line(do_send(msg))
+      res = parse(res) if options[:parse]
+      res
+    end
+
+    # Sends a raw command to DDSL and returns the response as a unprocessed string.
+    def do_send(cmd)
+      @stdin.puts(cmd)
+      @stdout.gets
+    end
 
     def connect!
       cmd = [options[:java_cmd], options[:jar_path]].join(' ')

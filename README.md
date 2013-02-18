@@ -11,25 +11,64 @@ Just a proof of concept.
 gem install ddslbg
 ```
 
+Note that this gem spawns a Java process running a standalone jar, so a working
+JRE is required.
+
 ## Usage
+
+Please see the [main DDSL documentation](https://github.com/mbknor/ddsl) for
+concepts and details.
+
+### Initialize the client
 
 ```ruby
 require 'ddslbg'
-
 $ddsl = Ddslbg::Client.new
+```
 
+### Set a list of zookeepers to use
+
+```ruby
+$ddsl.zookeeper_hosts = ['localhost:2181', 'some.other.server.com:2181']
+```
+
+### List available services
+
+```ruby
+$ddsl.available_services
+```
+
+### Toggle service state
+
+```ruby
 service = {
   id: {environment: 'test', serviceType: 'http', name: 'cmd-tool', version: '0.1'},
   sl: {url: 'http://localhost:4321/hi', quality: 1.0, lastUpdated: 1347398923243, ip: '127.0.0.1'}
 }
 
-# Some of the DDSL methods has Ruby shortcuts (TODO implement all methods):
-$ddsl.up(service)        # Register the service, uses ddsl serviceUp
-$ddsl.available_services # List all available services, uses ddsl getAllAvailableServices
-$ddsl.down(service)      # Explicitly deregister the service, uses ddsl serviceDown
+$ddsl.up(service)
+$ddsl.down(service)
+```
 
-# The remaining methods can be used via Ddslbg::Client#send, e.g.:
-$ddsl.send('setFallbackUrlsMap', 
-  {"ServiceId(test,telnet,telnetServer,0.1)" => "http://example.com/foo",
-   "ServiceId(test,http,BarServer,1.0)" => "http://example.com/bar"})
+### Get service locations
+
+```ruby
+service_request = {
+  'sid' => {'environment' => 'test', 'serviceType' => 'telnet', 'name' => 'telnetServer', 'version' => '0.1'},
+  'cid' => {'environment' => 'Client env', 'name' => 'client name', 'version' => 'version', 'ip' => 'ip-address'}
+}
+
+$ddsl.best_service_location(service_request)
+$ddsl.service_locations(service_request)
+```
+
+### Set local fallbacks
+
+```ruby
+fallbacks = {
+  'ServiceId(test,telnet,telnetServer,0.1)' => 'http://example.com/foo',
+  'ServiceId(test,http,BarServer,1.0)'      => 'http://example.com/bar'
+}
+
+$ddsl.fallback_urls = fallbacks
 ```
